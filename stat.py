@@ -4,6 +4,7 @@ import matplotlib.cm as cm
 import string
 import calendar
 import numpy as np
+import emoji
 
 #one message per line
 # day month year hour minute name message
@@ -28,13 +29,65 @@ with open("Discussion.txt", "r") as fichier:
 		except:#end of previous message
 			messages[-1][6] += line
 
+#General usage variables
 startDiscussion = date(int(messages[0][2]),int(messages[0][1]),int(messages[0][0]))
 endDiscussion = date(int(messages[-1][2]),int(messages[-1][1]),int(messages[-1][0]))
 durationDiscution = (endDiscussion-startDiscussion).days
+users = []
+for message in messages:
+	if message[5] in users :
+		pass
+	else:
+		users.append(message[5])
+
+ascii_string= """!"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~ """
+
+
 
 #General stats
 print "You exchanged " + str(len(messages)) + " messages over the course of " + str(durationDiscution) + " days."
 print "That's an average of " + str(len(messages)/durationDiscution) + " messages per day."
+lengthFirstSpeaker = []
+wordCountFirstSpeaker = []
+lengthSecondSpeaker = []
+wordCountSecondSpeaker = []
+smileyCountFirstSpeaker = 0
+smileyCountSecondSpeaker = 0
+for message in messages:
+	if message[5] == users[0]:
+		lengthFirstSpeaker.append(len(message[6]))
+		wordCountFirstSpeaker.append(len(message[6].split(' ')))
+	else :
+		lengthSecondSpeaker.append(len(message[6]))
+		wordCountSecondSpeaker.append(len(message[6].split(' ')))
+
+nbrWord = 0
+wordLength = []
+for message in messages:
+	for word in message[6].split(' '):
+		nbrWord += 1
+		wordLength.append(len(word))
+
+print "The average message is " + str((sum(lengthFirstSpeaker)+sum(lengthSecondSpeaker))/(len(lengthFirstSpeaker)+len(lengthSecondSpeaker))) \
++ " characters long with an average " + str(sum(lengthFirstSpeaker)/len(lengthFirstSpeaker)) + " characters long message for " + str(users[0]) + \
+" and " + str(sum(lengthSecondSpeaker)/len(lengthSecondSpeaker)) + " characters long for " + str(users[1])
+
+print "Thats a grand total of " + str(sum(lengthFirstSpeaker)+sum(lengthSecondSpeaker)) + " characters exchanged. If we admit that we type around 3 characters per second"\
++ "and we read around 300 words per minutes, taking into account that, in this discussion, the average word is " + str(sum(wordLength)/len(wordLength)) + " characters long."\
++ "it means that " + users[0] + " spent " + str(int(sum(lengthSecondSpeaker)/300/(sum(wordLength)/len(wordLength)))+int(sum(lengthFirstSpeaker)/3/60)) + "minutes in this conversation, (" + str(int(sum(lengthFirstSpeaker)/3/60)) + " minutes typing and " + str(int(sum(lengthSecondSpeaker)/300/(sum(wordLength)/len(wordLength)))) +" minutes reading)"\
++ "that's an average of " + str((int(sum(lengthSecondSpeaker)/300/(sum(wordLength)/len(wordLength)))+int(sum(lengthFirstSpeaker)/3/60))/durationDiscution) + " minutes per day."\
++ " and it means that " + users[1] + " spent " + str(int(sum(lengthFirstSpeaker)/300/(sum(wordLength)/len(wordLength)))+int(sum(lengthSecondSpeaker)/3/60)) + "minutes in this conversation, (" + str(int(sum(lengthSecondSpeaker)/3/60)) + " minutes typing and " + str(int(sum(lengthFirstSpeaker)/300/(sum(wordLength)/len(wordLength)))) +" minutes reading)"\
++ "that's an average of " + str((int(sum(lengthFirstSpeaker)/300/(sum(wordLength)/len(wordLength)))+int(sum(lengthSecondSpeaker)/3/60))/durationDiscution) + " minutes per day."
+
+
+print str(smileyCountFirstSpeaker + smileyCountSecondSpeaker) + " smileys have been used in this conversation (" + str(smileyCountFirstSpeaker) +\
+" smileys for " + str(users[0]) + " and " + str(smileyCountSecondSpeaker) + " smileys for " + str(users[1]) + ")"
+
+
+
+
+
+
 
 #Graphs
 #Who send more messages ?
@@ -122,6 +175,4 @@ for bar, red in zip(bars,reds):
 plt.title('When are the messages sent ?')
 plt.savefig('results/4.png')
 plt.show()
-
-
 
