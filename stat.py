@@ -1,29 +1,51 @@
+# -*- coding: utf-8 -*-
 from datetime import date
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
+import matplotlib.font_manager as mfm
+import matplotlib
 import string
 import calendar
 import numpy as np
 import emoji
+import regex
+import io
+
+font_path = "OpenSansEmoji.ttf"
+prop = mfm.FontProperties(fname=font_path)
+
+
+#courtesy of sheldonzy (https://stackoverflow.com/questions/43146528/how-to-extract-all-the-emojis-from-text)
+def countEmoji(text):
+	emoji_list = []
+	data = regex.findall(r'\X', text)
+	for word in data:
+		if any(char in emoji.UNICODE_EMOJI for char in word):
+			emoji_list.append(word)
+	return emoji_list
+
+
+
 
 #one message per line
 # day month year hour minute name message
 messages = []
 
-with open("Discussion.txt", "r") as fichier:
+with io.open("Discussion.txt", "r", encoding='utf-8') as fichier:
 	for line in fichier.readlines():
 		try :
 			if line[2] == "/" and line [5] == "/":#new message
 				day = line[0:2]
 				month = line[3:5]
 				year = line[6:10]
-				hour = line[14:16]
-				minute = line[17:19]
+				hour = line[13:15]
+				minute = line[16:18]
 				start = line.find('-') + 2
 				end = line[start:].find(':') + start
 				name = line[start:end]
 				message = line[end + 2:]
 				messages.append([day, month, year, hour, minute, name, message])
+				#print [day, month, year, hour, minute, name, message]
 			else:#end of previous message
 				messages[-1][6] += line
 		except:#end of previous message
@@ -53,13 +75,23 @@ lengthSecondSpeaker = []
 wordCountSecondSpeaker = []
 smileyCountFirstSpeaker = 0
 smileyCountSecondSpeaker = 0
+listeSmiley = []
+listeSmileyCount = []
 for message in messages:
 	if message[5] == users[0]:
 		lengthFirstSpeaker.append(len(message[6]))
 		wordCountFirstSpeaker.append(len(message[6].split(' ')))
+		smileyCountFirstSpeaker += len(countEmoji(message[6]))
 	else :
 		lengthSecondSpeaker.append(len(message[6]))
 		wordCountSecondSpeaker.append(len(message[6].split(' ')))
+		smileyCountSecondSpeaker += len(countEmoji(message[6]))
+	for smiley in countEmoji(message[6]):
+		if smiley in listeSmiley:
+			listeSmileyCount[listeSmiley.index(smiley)] += 1
+		else:
+			listeSmiley.append(smiley)
+			listeSmileyCount.append(1)
 
 nbrWord = 0
 wordLength = []
@@ -81,7 +113,8 @@ print "Thats a grand total of " + str(sum(lengthFirstSpeaker)+sum(lengthSecondSp
 
 
 print str(smileyCountFirstSpeaker + smileyCountSecondSpeaker) + " smileys have been used in this conversation (" + str(smileyCountFirstSpeaker) +\
-" smileys for " + str(users[0]) + " and " + str(smileyCountSecondSpeaker) + " smileys for " + str(users[1]) + ")"
+" smileys for " + str(users[0]) + " and " + str(smileyCountSecondSpeaker) + " smileys for " + str(users[1]) + ")"\
++ " that's an average " + str((smileyCountFirstSpeaker + smileyCountSecondSpeaker)/float(len(messages))) + " smiley per message"
 
 
 
@@ -173,6 +206,20 @@ reds = np.arange(0, 255, 255/len(bars))
 for bar, red in zip(bars,reds):
 	bar.set_facecolor((red/255.0, 0, 1))
 plt.title('When are the messages sent ?')
+plt.ylabel("coucou",  fontproperties=prop)
 plt.savefig('results/4.png')
 plt.show()
+
+
+#Which smiley is favourite ?
+objects = listeSmiley
+y_pos = range(len(objects))
+performance = listeSmileyCount
+plt.bar(y_pos, performance, align='center', alpha=0.5)
+plt.xticks(y_pos, objects, rotation='vertical', fontproperties=prop)
+plt.ylabel('number of use')
+plt.title('Which smiley is more used ?')
+#plt.savefig('results/5.png')
+plt.show()
+
 
